@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mark Attendance (Demo)</title>
+</head>
+<body style="font-family:sans-serif;text-align:center;padding:20px;">
+  <h2>📍 Marking Attendance</h2>
+  <p id="message">Waiting for location…</p>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const eventName = decodeURIComponent(params.get("event") || "Unknown Event");
+
+    function downloadCSV(data) {
+      const header = "Event,Latitude,Longitude,Time\n";
+      const rows = data.map(row => row.join(",")).join("\n");
+      const csv = header + rows;
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "attendance.csv";
+      link.click();
+    }
+
+    function saveAttendance(lat, lon, time) {
+      const entry = [eventName, lat, lon, time];
+      const all = JSON.parse(localStorage.getItem("attendanceList") || "[]");
+      all.push(entry);
+      localStorage.setItem("attendanceList", JSON.stringify(all));
+
+      document.getElementById('message').innerHTML = `
+        ✅ Hello! Your attendance for <b>${eventName}</b> is marked.<br>
+        📌 Location: ${lat.toFixed(4)}, ${lon.toFixed(4)}<br>
+        🕒 Time: ${time}<br><br>
+        <button onclick="downloadAttendance()">📥 Download Attendance CSV</button>
+      `;
+    }
+
+    function downloadAttendance() {
+      const data = JSON.parse(localStorage.getItem("attendanceList") || "[]");
+      if (data.length === 0) {
+        alert("No attendance data available.");
+        return;
+      }
+      downloadCSV(data);
+    }
+
+    function getLocationAndSave() {
+      if (!navigator.geolocation) {
+        document.getElementById("message").innerText = "Geolocation not supported.";
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(position => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        const now = new Date().toLocaleString();
+        saveAttendance(lat, lon, now);
+      }, () => {
+        document.getElementById("message").innerText = "❌ Location access denied.";
+      });
+    }
+
+    getLocationAndSave();
+  </script>
+</body>
+</html>
