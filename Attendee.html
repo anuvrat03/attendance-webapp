@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mark Attendance</title>
+</head>
+<body style="font-family:sans-serif;text-align:center;padding:20px;">
+  <h2>✅ Marking Attendance</h2>
+  <p id="message">Please allow location access…</p>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const eventName = decodeURIComponent(params.get("event") || "Unknown Event");
+    const webhookURL = "https://maker.ifttt.com/trigger/attendance_marked/with/key/YOUR_IFTTT_KEY";
+
+    function sendAttendance(position) {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      const timestamp = new Date().toLocaleString();
+
+      fetch(`${webhookURL}?value1=${eventName}&value2=${lat},${lon}&value3=${timestamp}`)
+        .then(() => {
+          document.getElementById('message').innerText = 
+            `✅ Hello! Your attendance for "${eventName}" is marked at ${timestamp}`;
+        })
+        .catch(err => {
+          document.getElementById('message').innerText = "❌ Failed to send attendance.";
+        });
+    }
+
+    function errorHandler() {
+      document.getElementById('message').innerText = "❌ Location access denied.";
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(sendAttendance, errorHandler);
+    } else {
+      document.getElementById('message').innerText = "❌ Geolocation not supported.";
+    }
+  </script>
+</body>
+</html>
