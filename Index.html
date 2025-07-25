@@ -1,11 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Mark Attendance (Demo)</title>
+  <title>Mark Attendance</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
 </head>
-<body style="font-family:sans-serif;text-align:center;padding:20px;">
+<body>
   <h2>📍 Marking Attendance</h2>
-  <p id="message">Waiting for location…</p>
+  <p id="message">⏳ Waiting for location...</p>
+  <div id="result"></div>
 
   <script>
     const params = new URLSearchParams(window.location.search);
@@ -20,7 +33,9 @@
       const link = document.createElement("a");
       link.href = url;
       link.download = "attendance.csv";
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
     }
 
     function saveAttendance(lat, lon, time) {
@@ -29,18 +44,18 @@
       all.push(entry);
       localStorage.setItem("attendanceList", JSON.stringify(all));
 
-      document.getElementById('message').innerHTML = `
+      document.getElementById("message").innerHTML = `
         ✅ Hello! Your attendance for <b>${eventName}</b> is marked.<br>
-        📌 Location: ${lat.toFixed(4)}, ${lon.toFixed(4)}<br>
+        📍 Location: ${lat.toFixed(4)}, ${lon.toFixed(4)}<br>
         🕒 Time: ${time}<br><br>
-        <button onclick="downloadAttendance()">📥 Download Attendance CSV</button>
+        <button onclick="downloadAttendance()">⬇️ Download Attendance CSV</button>
       `;
     }
 
     function downloadAttendance() {
       const data = JSON.parse(localStorage.getItem("attendanceList") || "[]");
       if (data.length === 0) {
-        alert("No attendance data available.");
+        alert("⚠️ No attendance data available.");
         return;
       }
       downloadCSV(data);
@@ -48,7 +63,7 @@
 
     function getLocationAndSave() {
       if (!navigator.geolocation) {
-        document.getElementById("message").innerText = "Geolocation not supported.";
+        document.getElementById("message").innerText = "❌ Geolocation not supported.";
         return;
       }
 
@@ -62,7 +77,8 @@
       });
     }
 
-    getLocationAndSave();
+    // Start on load
+    window.onload = getLocationAndSave;
   </script>
 </body>
 </html>
